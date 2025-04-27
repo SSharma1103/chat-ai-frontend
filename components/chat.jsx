@@ -16,7 +16,6 @@ const ChatComponent = () => {
 
   // Character images mapping (you can expand this)
   const characterImages = {
-    
     // Add more character-image mappings
   };
 
@@ -33,7 +32,19 @@ const ChatComponent = () => {
   }, [title]); // Ensure to re-run when the title changes
 
   const handleSend = async () => {
+    const token = localStorage.getItem("token");
     if (!userPrompt.trim()) return;
+
+    if (!token) {
+      // Handle missing token
+      console.error("Authentication token not found.");
+      setMessages((prev) => [
+        ...prev,
+        { sender: "system", content: "Authentication token not found. Please log in again." },
+      ]);
+      navigate("/login");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -42,11 +53,19 @@ const ChatComponent = () => {
       const userMessage = { sender: "user", content: userPrompt };
       setMessages((prev) => [...prev, userMessage]);
 
-      const res = await axios.post("http://localhost:3000/first/send", {
-        chatId,
-        title,
-        userPrompt,
-      });
+      const res = await axios.post(
+        "http://localhost:3000/first/send",
+        {
+          chatId,
+          title,
+          userPrompt,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const aiResponse = res.data.chat.messages.at(-1).content;
       const aiMessage = { sender: "character", content: aiResponse };
