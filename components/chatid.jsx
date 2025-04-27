@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import useUserStore from '../zstore/userStore';
 
 const CreateChat = () => {
-  const [userId, setUserId] = useState("");
   const [character, setCharacter] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  const userId = useUserStore((state) => state.userId);
+  const setChatId = useUserStore((state) => state.setChatId);
 
   // Popular movie characters for suggestions
   const popularCharacters = [
@@ -42,7 +45,7 @@ const CreateChat = () => {
         title: character
       });
 
-      localStorage.setItem("chatId", response.data.chatId);
+      setChatId(chatId);
       localStorage.setItem("chatTitle", character);
       navigate("/chat");
     } catch (err) {

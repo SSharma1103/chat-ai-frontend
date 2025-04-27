@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import useUserStore from "../zstore/userStore";
 
 const ChatComponent = () => {
-  const [chatId, setChatId] = useState("");
   const [userPrompt, setUserPrompt] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [characterImage, setCharacterImage] = useState("");
   const navigate = useNavigate();
+
+  const chatId = useUserStore((state) => state.chatId);
 
   // Character images mapping (you can expand this)
   const characterImages = {
