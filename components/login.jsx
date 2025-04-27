@@ -40,7 +40,8 @@ const Login = () => {
       
       localStorage.setItem('token', token);
       setUsername(username); 
-      setUserId(userId);      
+      setUserId(userId);    
+      console.log(userId, username);  
 
       navigate('/create');
     } catch (err) {

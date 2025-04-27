@@ -7,50 +7,41 @@ const ChatComponent = () => {
   const [userPrompt, setUserPrompt] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [title, setTitle] = useState("");
   const [characterImage, setCharacterImage] = useState("");
   const navigate = useNavigate();
 
+  // Correctly using Zustand to get chatId and title
   const chatId = useUserStore((state) => state.chatId);
+  const title = useUserStore((state) => state.title);
 
   // Character images mapping (you can expand this)
   const characterImages = {
-    "Tony Stark": "https://example.com/tony-stark.jpg",
-    "Hermione Granger": "https://example.com/hermione.jpg",
+    
     // Add more character-image mappings
   };
 
   useEffect(() => {
-    const storedChatId = localStorage.getItem("chatId");
-    const storedTitle = localStorage.getItem("chatTitle");
-    
-    if (!storedChatId || !storedTitle) {
-      navigate("/create-chat");
-      return;
+    if (title) {
+      // Set character image based on title from Zustand
+      const character = Object.keys(characterImages).find((char) =>
+        title.includes(char)
+      );
+      if (character) {
+        setCharacterImage(characterImages[character]);
+      }
     }
-
-    setChatId(storedChatId);
-    setTitle(storedTitle);
-    
-    // Set character image based on title
-    const character = Object.keys(characterImages).find(char => 
-      storedTitle.includes(char)
-    );
-    if (character) {
-      setCharacterImage(characterImages[character]);
-    }
-  }, [navigate]);
+  }, [title]); // Ensure to re-run when the title changes
 
   const handleSend = async () => {
     if (!userPrompt.trim()) return;
 
     try {
       setLoading(true);
-      
+
       // Add user message to chat
       const userMessage = { sender: "user", content: userPrompt };
-      setMessages(prev => [...prev, userMessage]);
-      
+      setMessages((prev) => [...prev, userMessage]);
+
       const res = await axios.post("http://localhost:3000/first/send", {
         chatId,
         title,
@@ -59,15 +50,15 @@ const ChatComponent = () => {
 
       const aiResponse = res.data.chat.messages.at(-1).content;
       const aiMessage = { sender: "character", content: aiResponse };
-      setMessages(prev => [...prev, aiMessage]);
-      
+      setMessages((prev) => [...prev, aiMessage]);
+
       setUserPrompt("");
     } catch (err) {
       console.error(err);
-      setMessages(prev => [...prev, { 
-        sender: "system", 
-        content: "Sorry, there was an error processing your request." 
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "system", content: "Sorry, there was an error processing your request." },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -87,8 +78,8 @@ const ChatComponent = () => {
         <header className="flex items-center justify-between p-4 border-b border-gray-700">
           <div className="flex items-center space-x-3">
             {characterImage && (
-              <img 
-                src={characterImage} 
+              <img
+                src={characterImage}
                 alt={title}
                 className="w-12 h-12 rounded-full object-cover border-2 border-yellow-400"
               />
@@ -98,12 +89,6 @@ const ChatComponent = () => {
               <p className="text-sm text-gray-400">Movie Character AI</p>
             </div>
           </div>
-          <button 
-            onClick={() => navigate("/create-chat")}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm"
-          >
-            New Chat
-          </button>
         </header>
 
         {/* Chat Area */}
@@ -125,13 +110,10 @@ const ChatComponent = () => {
             </div>
           ) : (
             messages.map((message, index) => (
-              <div 
-                key={index} 
-                className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div 
-                  className={`max-w-3xl rounded-lg p-4 ${message.sender === "user" 
-                    ? "bg-blue-600 rounded-br-none" 
+              <div key={index} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  className={`max-w-3xl rounded-lg p-4 ${message.sender === "user"
+                    ? "bg-blue-600 rounded-br-none"
                     : message.sender === "character"
                       ? "bg-gray-700 rounded-bl-none"
                       : "bg-red-900"}`}
@@ -158,8 +140,8 @@ const ChatComponent = () => {
             <button
               onClick={handleSend}
               disabled={loading || !userPrompt.trim()}
-              className={`absolute right-3 bottom-3 p-2 rounded-full ${loading || !userPrompt.trim() 
-                ? "bg-gray-500 cursor-not-allowed" 
+              className={`absolute right-3 bottom-3 p-2 rounded-full ${loading || !userPrompt.trim()
+                ? "bg-gray-500 cursor-not-allowed"
                 : "bg-yellow-500 hover:bg-yellow-400"}`}
             >
               {loading ? (

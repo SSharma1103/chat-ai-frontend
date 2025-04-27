@@ -10,7 +10,10 @@ const CreateChat = () => {
   const navigate = useNavigate();
 
   const userId = useUserStore((state) => state.userId);
+  console.log(userId);
   const setChatId = useUserStore((state) => state.setChatId);
+  const settitle = useUserStore((state) => state.settitle);
+  const setUserId = useUserStore((state) => state.setUserId);
 
   // Popular movie characters for suggestions
   const popularCharacters = [
@@ -44,9 +47,13 @@ const CreateChat = () => {
         userId,
         title: character
       });
+      const chatId = response.data.chatId;
 
       setChatId(chatId);
-      localStorage.setItem("chatTitle", character);
+      settitle(character);
+      console.log(chatId);
+      console.log(character);
+      
       navigate("/chat");
     } catch (err) {
       console.error(err);
