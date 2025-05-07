@@ -10,7 +10,10 @@ const CreateChat = () => {
   const navigate = useNavigate();
 
   const userId = useUserStore((state) => state.userId);
+  console.log(userId);
   const setChatId = useUserStore((state) => state.setChatId);
+  const settitle = useUserStore((state) => state.settitle);
+  const setUserId = useUserStore((state) => state.setUserId);
 
   // Popular movie characters for suggestions
   const popularCharacters = [
@@ -25,14 +28,24 @@ const CreateChat = () => {
 
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
+    
     if (storedUserId) {
       setUserId(storedUserId);
     }
   }, []);
 
   const handleCreateChat = async () => {
+    const token = localStorage.getItem("token");
+
     if (!character.trim()) {
       setError("Please select or enter a character");
+      return;
+    }
+
+    if (!token) {
+      setError("Authentication token not found. Please log in again.");
+      // Optionally, redirect the user to the login page
+      navigate("/login"); 
       return;
     }
 
@@ -42,11 +55,20 @@ const CreateChat = () => {
     try {
       const response = await axios.post("http://localhost:3000/user/create", {
         userId,
-        title: character
+        title: character,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
+      const chatId = response.data.chatId;
+
       setChatId(chatId);
-      localStorage.setItem("chatTitle", character);
+      settitle(character);
+      console.log(chatId);
+      console.log(character);
+
       navigate("/chat");
     } catch (err) {
       console.error(err);

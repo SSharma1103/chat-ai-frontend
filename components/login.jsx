@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import useUserStore from '../zstore/userStore';
 
 const Login = () => {
@@ -40,7 +40,8 @@ const Login = () => {
       
       localStorage.setItem('token', token);
       setUsername(username); 
-      setUserId(userId);      
+      setUserId(userId);    
+      console.log(userId, username);  
 
       navigate('/create');
     } catch (err) {
@@ -157,7 +158,15 @@ const Login = () => {
             </div>
           </form>
 
-          {/* other continue with buttons code */}
+          {/* Link to Register */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-400">
+              Don’t have an account?{' '}
+              <Link to="/register" className="font-medium text-blue-400 hover:text-blue-300">
+                Register
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
