@@ -10,7 +10,7 @@ const CreateChat = () => {
   const navigate = useNavigate();
 
   // Define your backend URL using the environment variable
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   const userId = useUserStore((state) => state.userId);
   console.log(userId); // Good for debugging, remove in production if not needed

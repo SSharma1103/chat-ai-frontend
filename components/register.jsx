@@ -14,7 +14,7 @@ const RegisterForm = () => {
   const navigate = useNavigate();
 
   // Define your backend URL using the environment variable
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   const setUsername = useUserStore((state) => state.setUsername);
   const setUserId = useUserStore((state) => state.setUserId);

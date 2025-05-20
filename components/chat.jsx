@@ -12,7 +12,7 @@ const ChatComponent = () => {
 
   // Define your backend URL using the environment variable
   // This variable will be set on Render.com and locally in .env.development
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   // Correctly using Zustand to get chatId and title
   const chatId = useUserStore((state) => state.chatId);
