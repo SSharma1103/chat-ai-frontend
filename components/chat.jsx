@@ -10,6 +10,10 @@ const ChatComponent = () => {
   const [characterImage, setCharacterImage] = useState("");
   const navigate = useNavigate();
 
+  // Define your backend URL using the environment variable
+  // This variable will be set on Render.com and locally in .env.development
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
   // Correctly using Zustand to get chatId and title
   const chatId = useUserStore((state) => state.chatId);
   const title = useUserStore((state) => state.title);
@@ -35,6 +39,17 @@ const ChatComponent = () => {
     const token = localStorage.getItem("token");
     if (!userPrompt.trim()) return;
 
+    // --- IMPORTANT: Check if BACKEND_URL is defined ---
+    if (!BACKEND_URL) {
+      console.error("Backend URL is not defined! Ensure REACT_APP_BACKEND_URL is set in environment variables.");
+      setMessages((prev) => [
+        ...prev,
+        { sender: "system", content: "Configuration error: Backend URL is missing. Please contact support." },
+      ]);
+      setLoading(false);
+      return;
+    }
+
     if (!token) {
       // Handle missing token
       console.error("Authentication token not found.");
@@ -54,7 +69,8 @@ const ChatComponent = () => {
       setMessages((prev) => [...prev, userMessage]);
 
       const res = await axios.post(
-        "http://localhost:3000/first/send",
+        // --- UPDATED: Use BACKEND_URL here ---
+        `${BACKEND_URL}/first/send`,
         {
           chatId,
           title,
@@ -73,10 +89,24 @@ const ChatComponent = () => {
 
       setUserPrompt("");
     } catch (err) {
-      console.error(err);
+      console.error("Error sending message:", err);
+      // More descriptive error message based on common issues
+      let errorMessage = "Sorry, there was an error processing your request.";
+      if (err.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          errorMessage = `Server error: ${err.response.status} - ${err.response.data?.message || 'Something went wrong.'}`;
+      } else if (err.request) {
+          // The request was made but no response was received
+          errorMessage = "Network error: Could not connect to the backend. Please check your internet connection or server status.";
+      } else {
+          // Something happened in setting up the request that triggered an Error
+          errorMessage = `Request setup error: ${err.message}`;
+      }
+
       setMessages((prev) => [
         ...prev,
-        { sender: "system", content: "Sorry, there was an error processing your request." },
+        { sender: "system", content: errorMessage },
       ]);
     } finally {
       setLoading(false);
@@ -123,6 +153,7 @@ const ChatComponent = () => {
                     <li>What was your most challenging moment?</li>
                     <li>Tell me about your relationship with [other character]</li>
                     <li>What would you do differently if you could?</li>
+                    <li>What would you do differently if you could?</li>
                   </ul>
                 </div>
               </div>
@@ -132,10 +163,10 @@ const ChatComponent = () => {
               <div key={index} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                 <div
                   className={`max-w-3xl rounded-lg p-4 ${message.sender === "user"
-                    ? "bg-blue-600 rounded-br-none"
-                    : message.sender === "character"
-                      ? "bg-gray-700 rounded-bl-none"
-                      : "bg-red-900"}`}
+                      ? "bg-blue-600 rounded-br-none"
+                      : message.sender === "character"
+                        ? "bg-gray-700 rounded-bl-none"
+                        : "bg-red-900"}`}
                 >
                   <p className="whitespace-pre-wrap">{message.content}</p>
                 </div>
@@ -160,8 +191,8 @@ const ChatComponent = () => {
               onClick={handleSend}
               disabled={loading || !userPrompt.trim()}
               className={`absolute right-3 bottom-3 p-2 rounded-full ${loading || !userPrompt.trim()
-                ? "bg-gray-500 cursor-not-allowed"
-                : "bg-yellow-500 hover:bg-yellow-400"}`}
+                  ? "bg-gray-500 cursor-not-allowed"
+                  : "bg-yellow-500 hover:bg-yellow-400"}`}
             >
               {loading ? (
                 <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">

@@ -9,8 +9,11 @@ const CreateChat = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // Define your backend URL using the environment variable
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
   const userId = useUserStore((state) => state.userId);
-  console.log(userId);
+  console.log(userId); // Good for debugging, remove in production if not needed
   const setChatId = useUserStore((state) => state.setChatId);
   const settitle = useUserStore((state) => state.settitle);
   const setUserId = useUserStore((state) => state.setUserId);
@@ -32,7 +35,7 @@ const CreateChat = () => {
     if (storedUserId) {
       setUserId(storedUserId);
     }
-  }, []);
+  }, [setUserId]); // Added setUserId to dependency array as it's a function from Zustand
 
   const handleCreateChat = async () => {
     const token = localStorage.getItem("token");
@@ -42,9 +45,16 @@ const CreateChat = () => {
       return;
     }
 
+    // --- IMPORTANT: Check if BACKEND_URL is defined ---
+    if (!BACKEND_URL) {
+      console.error("Backend URL is not defined! Ensure REACT_APP_BACKEND_URL is set in environment variables.");
+      setError("Configuration error: Backend URL is missing. Please contact support.");
+      setLoading(false);
+      return;
+    }
+
     if (!token) {
       setError("Authentication token not found. Please log in again.");
-      // Optionally, redirect the user to the login page
       navigate("/login"); 
       return;
     }
@@ -53,26 +63,40 @@ const CreateChat = () => {
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:3000/user/create", {
-        userId,
-        title: character,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.post(
+        // --- UPDATED: Use BACKEND_URL here ---
+        `${BACKEND_URL}/user/create`, 
+        {
+          userId,
+          title: character,
+        }, 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const chatId = response.data.chatId;
 
       setChatId(chatId);
       settitle(character);
-      console.log(chatId);
-      console.log(character);
+      console.log(chatId); // Good for debugging
+      console.log(character); // Good for debugging
 
       navigate("/chat");
     } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.message || "Failed to start conversation");
+      console.error("Error creating chat:", err); // More specific error logging
+      // More descriptive error message based on common issues
+      let errorMessage = "Failed to start conversation.";
+      if (err.response) {
+          errorMessage = `Server error: ${err.response.status} - ${err.response.data?.message || 'Something went wrong.'}`;
+      } else if (err.request) {
+          errorMessage = "Network error: Could not connect to the backend. Please check your internet connection or server status.";
+      } else {
+          errorMessage = `Request setup error: ${err.message}`;
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

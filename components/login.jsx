@@ -12,6 +12,9 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Define your backend URL using the environment variable
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
   const setUsername = useUserStore((state) => state.setUsername);
   const setUserId = useUserStore((state) => state.setUserId);
 
@@ -33,24 +36,37 @@ const Login = () => {
       return;
     }
 
+    // --- IMPORTANT: Check if BACKEND_URL is defined ---
+    if (!BACKEND_URL) {
+      console.error("Backend URL is not defined! Ensure REACT_APP_BACKEND_URL is set in environment variables.");
+      setError("Configuration error: Backend URL is missing. Please contact support.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await axios.post('http://localhost:3000/user/login', formData);
+      const response = await axios.post(`${BACKEND_URL}/user/login`, formData); // <-- Updated URL
       
       const { token, userId, username } = response.data;
       
       localStorage.setItem('token', token);
       setUsername(username); 
-      setUserId(userId);    
-      console.log(userId, username);  
+      setUserId(userId); 
+      console.log(userId, username); 
 
       navigate('/create');
     } catch (err) {
+      console.error("Error during login:", err); // More specific logging
       if (err.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
         setError(err.response.data.message || 'Invalid credentials');
       } else if (err.request) {
-        setError('No response from server. Please try again.');
+        // The request was made but no response was received
+        setError('Network error: No response from server. Please check your internet connection or server status.');
       } else {
-        setError('Error setting up request');
+        // Something happened in setting up the request that triggered an Error
+        setError(`Request setup error: ${err.message}`);
       }
     } finally {
       setLoading(false);
